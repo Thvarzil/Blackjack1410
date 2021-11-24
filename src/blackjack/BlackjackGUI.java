@@ -21,6 +21,7 @@ import javax.swing.SwingConstants;
 public class BlackjackGUI extends JFrame {
 
 	private JPanel contentPane;
+	private GameState gameState = new GameState();
 
 	/**
 	 * Launch the application.
@@ -136,7 +137,7 @@ public class BlackjackGUI extends JFrame {
 	}
 
 	private JButton newbtnPlayAgain() {
-		JButton btnPlayAgain = new JButton("Play Again");
+		JButton btnPlayAgain = new JButton("Next Hand");
 		btnPlayAgain.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		return btnPlayAgain;
 	}
