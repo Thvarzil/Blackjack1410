@@ -11,12 +11,15 @@ import java.awt.GridLayout;
 import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.Font;
-import javax.swing.JTextPane;
 import javax.swing.JLabel;
-import java.awt.FlowLayout;
-import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 
+/**
+ * GUI and game handling class
+ * 
+ * @author Hayden Blackmer
+ *
+ */
 @SuppressWarnings("serial")
 public class BlackjackGUI extends JFrame {
 

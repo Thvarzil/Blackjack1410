@@ -1,5 +1,11 @@
 package blackjack;
 
+/**
+ * Test class for game functionality
+ * 
+ * @author Hayden Blackmer & Lou LeBohec
+ *
+ */
 public class TestApp {
 
 	public static void main(String[] args) {

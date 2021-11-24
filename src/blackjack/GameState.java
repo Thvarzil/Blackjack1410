@@ -3,6 +3,7 @@ package blackjack;
 
 /**
  * Class holding all game state and actions
+ * 
  * @author Lou Lebohec
  *
  */
@@ -34,11 +35,6 @@ public class GameState {
 	public Card hit() {
 		Card card = new Card();
 		System.out.println(card);
-		
-		
-		
-		
-		
 		
 		switch (card.getCardValue()) {
 		case TWO:

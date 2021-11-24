@@ -7,6 +7,12 @@ import javax.swing.ImageIcon;
 import java.awt.BorderLayout;
 import java.awt.Color;
 
+/**
+ * GUI Fragment representing the player's hand
+ * 
+ * @author Hayden Blackmer
+ *
+ */
 @SuppressWarnings("serial")
 public class PlayersCards extends JPanel {
 	//Cards start on the left at 8 and decrease as they get moved to the right on the panel
