@@ -19,6 +19,41 @@ import javax.swing.SwingConstants;
  * 
  * @author Hayden Blackmer
  *
+ *
+ *Quick Reminder Notes:
+ *
+ *All of the relevant methods are non-static methods in the class GameState,
+ *which means that they are attached to the instance, not the class. 
+ *Therefore, in your button onclicks, you will be calling the appropriate functions
+ *in the format gameState.method(), and then you'll just need to update the proper 
+ *components with the new gameState information. 
+ *
+ *Summary of GameState methods you might need to call:
+ *- deal() - returns an ArrayList<Card> that contains the player's first card at 0 and the dealer's
+ *			first card at 1 - this will probably be called in the onclick of the Submit button
+ *- hit() - returns the card dealt to the player
+ *- stay() - returns an ArrayList of cards, the first of which is the dealer's hidden card
+ *- modifyBet(int change) - takes the amount the bet is being changed and alters the 
+ *			bankroll and bet accordingly - both the bet modification buttons will call this, with 
+ *			different input
+ *-evaluateHand() - determines who wins the hand. Returns 0 if player won, 1 if player lost, 2 if draw,
+ *			3 when called after hit() indicating the player has not busted
+ *
+ *Buttons:
+ ******Some of the methods you'll need to call throw exceptions intended to communicate things with you
+ ******You'll want to catch these exceptions and modify the GUI appropriately. Also, evaluateHand() and 
+ ******handling its output should always be the last thing in the onclick - all GUI changes due to cards
+ ******and the like should be handled first.
+ **Bet Up/Bet Down - calls modifyBet(int change). modifyBet throws two exceptions - IllegalArgumentException
+ * 	if player tries to bet more than they have, and IllegalStateOperation if player tries to bet less than minimum 
+ **Submit - calls deal(). deal() returns the player and dealer's first cards 
+ **Hit - calls hit() and evaluateHand(). hit() returns the player's new card, evaluateHand() checks to see if 
+ *	player has busted. will return 1 or 3. if returns 1, player has lost hand, else continue.
+ **Stay - calls stay() and evaluateHand(). stay() returns the dealer's hand, with the hidden card last. evaluate hand
+ *	will not return 3 in this case, as the player has stayed and the hand is over.
+ **New Hand (when hand has ended) - calls startHand(). startHand() throws an IllegalStateOperation if player is
+ *	unable to make minimum bet.
+ *
  */
 @SuppressWarnings("serial")
 public class BlackjackGUI extends JFrame {
