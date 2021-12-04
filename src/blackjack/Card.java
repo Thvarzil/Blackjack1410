@@ -5,6 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Represents a card
+ * 
+ * @author Lou LeBohec & Hayden Blackmer
+ *
+ */
 public class Card {
 	private Suits suit;
 	private CardValue cardValue;

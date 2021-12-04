@@ -8,6 +8,12 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import java.awt.Color;
 
+/**
+ * GUI Fragment representing Dealer's Hand
+ * 
+ * @author Hayden Blackmer
+ *
+ */
 @SuppressWarnings("serial")
 public class DealersCards extends JPanel {
 	public String card1Path = "";
