@@ -14,4 +14,10 @@ public enum CardValue {
 	QUEEN,
 	KING,
 	ACE;
+	
+	@Override
+    public String toString() {
+        return name().toLowerCase();
+    }
 }
+

@@ -1,6 +1,10 @@
 package blackjack;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Class holding all game state and actions
@@ -11,10 +15,11 @@ import java.util.ArrayList;
 public class GameState {
 	private int dealerScore;
 	private int playerScore;
-	private int bankroll;
+	private double bankroll;
 	private int currentBet;
-	private boolean stayed;
-	final int MINIMUM_BET = 15;
+	private String gameOutcome;
+	final static int MINIMUM_BET = 10;
+	private File file = new File("./src/save/save.txt");
 
 	/**
 	 * @param dealerScore
@@ -25,9 +30,16 @@ public class GameState {
 	public GameState() {
 		this.dealerScore = 0;
 		this.playerScore = 0;
-		this.bankroll = 1000;
 		this.currentBet = 0;
-		this.stayed=false;
+		
+		try(Scanner reader = new Scanner(file);){
+			this.bankroll = reader.nextDouble();
+		}
+		catch(FileNotFoundException e) {
+			System.out.println("File not found");
+			e.printStackTrace();
+		}
+		
 	}
 	
 	/**
@@ -39,14 +51,13 @@ public class GameState {
 		playerScore = 0;
 		dealerScore = 0;
 		currentBet = 0;
-		stayed = false;
 		
 		if(bankroll<MINIMUM_BET) {
 			throw new IllegalStateException("Player does not have the funds to play another hand");
 		}
 		else {
 			currentBet = MINIMUM_BET;
-			bankroll-=MINIMUM_BET;
+			saveBankroll(MINIMUM_BET*-1);
 		}
 	}
 	
@@ -55,15 +66,31 @@ public class GameState {
 	 * @return an ArrayList containing the player's first card at 0 and the dealer's first card at 1
 	 */
 	public ArrayList<Card> deal() {
-		ArrayList<Card> initialCards = new ArrayList<>();
-		Card dealerFirstCard = new Card();
-		
-		dealerScore+=(parseCardValue(dealerFirstCard.getCardValue()));
-		initialCards.add(hit());
-		initialCards.add(dealerFirstCard);
-		
-		return initialCards;
-	}
+        ArrayList<Card> initialCards = new ArrayList<>();
+        
+        Card dealerFirstCard = new Card();
+        initialCards.add(dealerFirstCard);
+        int dealerValue = parseCardValue(dealerFirstCard.getCardValue());
+        if(dealerScore>10&&dealerValue==11) {
+        	dealerScore++;
+        }
+        else dealerScore+=(parseCardValue(dealerFirstCard.getCardValue()));
+        
+        dealerFirstCard = new Card();
+        initialCards.add(dealerFirstCard);
+        dealerValue = parseCardValue(dealerFirstCard.getCardValue());
+        if(dealerScore>10&&dealerValue==11) {
+        	dealerScore++;
+        }
+        else dealerScore+=(parseCardValue(dealerFirstCard.getCardValue()));
+        
+        
+        
+        initialCards.add(playerHit());
+        initialCards.add(playerHit());
+  
+        return initialCards;
+    }
 	
 	/**
 	 * Performs the hit functionality: 
@@ -72,11 +99,14 @@ public class GameState {
 	 * 
 	 * @param team 0 for player, 1 for dealer
 	 */
-	public Card hit() {
+	public Card playerHit() {
 		Card card = new Card();
 		System.out.println(card);
-		
-		playerScore += parseCardValue(card.getCardValue());
+		int cardValue = parseCardValue(card.getCardValue());
+		if(playerScore>10&&cardValue==11) {
+			playerScore++;
+		}
+		else playerScore += parseCardValue(card.getCardValue());
 		return card;
 	}
 
@@ -85,20 +115,14 @@ public class GameState {
 	 * * Dealer hits to 17 
 	 * * Dealer flips face down card
 	 */
-	public ArrayList<Card> stay() {
-		stayed = true;
-		ArrayList<Card> dealerCards = new ArrayList<>();
-		
-		while(dealerScore<17) {
-			Card newCard = new Card();
-			dealerScore+=(parseCardValue(newCard.getCardValue()));
-			dealerCards.add(newCard);
-		}
-		
-		Card hiddenCard = new Card();
-		dealerScore+=(parseCardValue(hiddenCard.getCardValue()));
-		dealerCards.add(hiddenCard);
-		return dealerCards;
+	public Card stay() {
+		Card newCard = new Card();
+		if(dealerScore>10&&parseCardValue(newCard.getCardValue())==11) {
+        	dealerScore++;
+        }
+        else dealerScore+=(parseCardValue(newCard.getCardValue()));
+        
+		return newCard;
 	}
 
 	/**
@@ -110,51 +134,52 @@ public class GameState {
 		if(change>bankroll) {
 			throw new IllegalArgumentException("bet cannot be larger than bankroll");
 		}
-		else if(currentBet+change<MINIMUM_BET) {
+		else if(currentBet+change < MINIMUM_BET) {
 			throw new IllegalStateException("Cannot bet less than minimum");
 		}
 		else {
-			bankroll-=change;
+			saveBankroll(change*-1);
 			currentBet+=change;
+		}	
+	}
+	
+	public void naturalBlackjack() {
+		if(playerScore == dealerScore) {	
+			gameOutcome ="Its A Tie";
+		}else {
+			saveBankroll(currentBet*-1.5);			
+			gameOutcome ="You Win!";
 		}
+	}
+	
+	public void updateBalance() {
 		
-	}
 	
+		
+		
+		if(playerScore > dealerScore && playerScore <= 21) {
+			saveBankroll(currentBet*1.5);
+			gameOutcome = "Player Wins";
+		}else if(playerScore < dealerScore && dealerScore <= 21) {
+			
+			gameOutcome = "Dealer Wins";
+		}else if(playerScore > 21) {
+			gameOutcome = "Bust! Dealer Wins";
+			
+		}else if(dealerScore > 21) {
+			gameOutcome = "Bust! Player Wins";
+			saveBankroll(currentBet*1.5);
+		}else
+			gameOutcome = "It's a Tie";
+	}
+
 	/**
-	 * Evaluates if player has won or lost, changes bankroll appropriately
-	 * @return 0 if player has won, 1 if player has lost, 2 if drawn, 3 if hand is unfinished
+	 * @return the gameOutcome
 	 */
-	public int evaluateHand() {
-		//Player bust
-		if(playerScore>21) {
-			return 1;
-		}
-		//Other states only checked after stay
-		else if (stayed) {
-			//Dealer bust
-			if(dealerScore>21) {
-				bankroll+=(currentBet*1.5);
-				return 0;
-			}
-			//Dealer beats player
-			else if(dealerScore>playerScore) {
-				return 1;
-			}
-			//Player beats dealer
-			else if(dealerScore<playerScore) {
-				bankroll+=(currentBet*1.5);
-				return 0;
-			}
-			//Draw
-			else {
-				bankroll+=currentBet;
-				return 2;
-			}
-		}
-		//Game is unfinished
-		else return 3;
+	public String getGameOutcome() {
+		return gameOutcome;
 	}
-	
+
 	/**
 	 * Translates a CardValue into the integer value of the card
 	 * @param the CardValue to be parsed
@@ -185,6 +210,18 @@ public class GameState {
 		}
 
 	}
+	
+	public void saveBankroll(double change) {
+		try(PrintWriter writer = new PrintWriter(file);){
+			bankroll+=change;
+			writer.println(bankroll);
+			writer.close();
+		}
+		catch(FileNotFoundException e) {
+			System.out.println("File Not Found");
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * @return the dealerScore
@@ -203,7 +240,7 @@ public class GameState {
 	/**
 	 * @return the bankroll
 	 */
-	public int getBankroll() {
+	public double getBankroll() {
 		return bankroll;
 	}
 
