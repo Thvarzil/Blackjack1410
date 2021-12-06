@@ -26,7 +26,6 @@ public class Card {
 		this.cardValue = cardValue;
 	}
 	
-	
 	/**
 	 * Creates a random card 
 	 */
@@ -35,16 +34,12 @@ public class Card {
 		this.cardValue = CardValues.get(RANDOM.nextInt(13));
 	}
 	
-	
-
 	/**
 	 * @return the suit
 	 */
 	public Suits getSuit() {
 		return suit;
 	}
-
-
 
 	/**
 	 * @return the cardValue
@@ -53,11 +48,9 @@ public class Card {
 		return cardValue;
 	}
 
-
-
 	@Override
 	public String toString() {
-		return cardValue + "_of_" + suit.toString();
+		return "/img/" + cardValue + "_of_" + suit.toString() + ".png";
 	}
 
 

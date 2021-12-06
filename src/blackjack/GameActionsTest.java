@@ -17,6 +17,4 @@ class GameActionsTest {
 	public void initEach() {
 		testState = new GameState();
 	}
-
-
 }
