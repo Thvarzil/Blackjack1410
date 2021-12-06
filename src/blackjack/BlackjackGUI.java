@@ -19,47 +19,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 
-/**
- * GUI and game handling class
- * 
- * @author Hayden Blackmer
- *
- *
- *Quick Reminder Notes:
- *
- *All of the relevant methods are non-static methods in the class GameState,
- *which means that they are attached to the instance, not the class. 
- *Therefore, in your button onclicks, you will be calling the appropriate functions
- *in the format gameState.method(), and then you'll just need to update the proper 
- *components with the new gameState information. 
- *
- *Summary of GameState methods you might need to call:
- *- deal() - returns an ArrayList<Card> that contains the player's first card at 0 and the dealer's
- *			first card at 1 - this will probably be called in the onclick of the Submit button
- *- playerHit() - returns the card dealt to the player
- *- stay() - returns an ArrayList of cards, the first of which is the dealer's hidden card
- *- modifyBet(int change) - takes the amount the bet is being changed and alters the 
- *			bankroll and bet accordingly - both the bet modification buttons will call this, with 
- *			different input
- *-evaluateHand() - determines who wins the hand. Returns 0 if player won, 1 if player lost, 2 if draw,
- *			3 when called after playerHit() indicating the player has not busted
- *
- *Buttons:
- ******Some of the methods you'll need to call throw exceptions intended to communicate things with you
- ******You'll want to catch these exceptions and modify the GUI appropriately. Also, evaluateHand() and 
- ******handling its output should always be the last thing in the onclick - all GUI changes due to cards
- ******and the like should be handled first.
- **Bet Up/Bet Down - calls modifyBet(int change). modifyBet throws two exceptions - IllegalArgumentException
- * 	if player tries to bet more than they have, and IllegalStateOperation if player tries to bet less than minimum 
- **Submit - calls deal(). deal() returns the player and dealer's first cards 
- **Hit - calls playerHit() and evaluateHand(). playerHit() returns the player's new card, evaluateHand() checks to see if 
- *	player has busted. will return 1 or 3. if returns 1, player has lost hand, else continue.
- **Stay - calls stay() and evaluateHand(). stay() returns the dealer's hand, with the hidden card last. evaluate hand
- *	will not return 3 in this case, as the player has stayed and the hand is over.
- **New Hand (when hand has ended) - calls startHand(). startHand() throws an IllegalStateOperation if player is
- *	unable to make minimum bet.
- *
- */
+
 @SuppressWarnings("serial")
 public class BlackjackGUI extends JFrame {
 	
@@ -141,6 +101,10 @@ public class BlackjackGUI extends JFrame {
 		contentPane.add(layeredPane, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Creates the Layered pane that all of the parts of the GUI are dislpayed in
+	 * @return
+	 */
 	private JLayeredPane newLayeredPane() {
 		layeredPane = new JLayeredPane();
 		layeredPane.setOpaque(true);
@@ -167,6 +131,10 @@ public class BlackjackGUI extends JFrame {
 		return layeredPane;
 	}
 
+	/**
+	 * Displays text at the top of the screen that is 
+	 * dynamically updated with the outcome of the game.
+	 */
 	private JLabel newlblGameOutcome() {
 		lblGameOutcome = new JLabel("");
 		lblGameOutcome.setForeground(new Color(255, 255, 255));
@@ -176,14 +144,10 @@ public class BlackjackGUI extends JFrame {
 		return lblGameOutcome;
 	}
 
-	private void newPlayersCardsPane() {
-		playersCardsPane = new JLayeredPane();
-	}
-
-	private void newDealersCardsPane() {
-		dealersCardsPane = new JLayeredPane();
-	}
-	
+	/**
+	 * Creates the panel that contains the stay button.
+	 * @return
+	 */
 	private JPanel newHitStayPanel() {
 		JPanel HitStayPanel = new JPanel();
 		HitStayPanel.setBounds(10, 207, 300, 38);
@@ -200,16 +164,20 @@ public class BlackjackGUI extends JFrame {
 		return HitStayPanel;
 	}
 
+	/**
+	 * Creates a button which implements the same functionality as staying in blackjack:
+	 * OnClick: prompts the dealer to draw cards if their total is less than 17 and less
+	 * than the score of the player.
+	 * @return
+	 */
 	private JButton newBtnStay() {
 		JButton btnStay = new JButton("Stay");
 		btnStay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//flips the dealers card 
 				dealerCard8.setIcon(new ImageIcon(BlackjackGUI.class.getResource(cards.get(0).toString())));
-
+				
 				while (gameState.getDealerScore() < 17 && gameState.getDealerScore() < gameState.getPlayerScore()) {
-					System.out.println("While Loop start: "+ gameState.getDealerScore());
-
 					switch (dealerHitCounter){
 					case 0:
 						dealerCard6.setIcon(new ImageIcon(BlackjackGUI.class.getResource(gameState.stay().toString())));
@@ -233,7 +201,6 @@ public class BlackjackGUI extends JFrame {
 						btnHit.setEnabled(false);
 						break;
 					}
-					System.out.println("While Loop End: "+ gameState.getDealerScore());
 					dealerHitCounter++;
 				}
 				gameEnd();
@@ -243,6 +210,11 @@ public class BlackjackGUI extends JFrame {
 		return btnStay;
 	}
 
+	/**
+	 * Creates a button which implements the same functionality as Hitting in blackjack
+	 * OnClick: Each time, a new card is added to the players hand. Calculates if the 
+	 * player busts and does not allow for further hits.
+	 */
 	private JButton newBtnplayerHit() {
 		JButton btnHit = new JButton("Hit");
 		btnHit.addActionListener(new ActionListener() {
@@ -285,22 +257,9 @@ public class BlackjackGUI extends JFrame {
 		return btnHit;
 	}
 	
-	private void gameEnd() {
-		btnHit.setEnabled(false);
-		btnStay.setEnabled(false);
-		btnPlayAgain.setEnabled(true);
-		
-		//checks if its a win, tie or loss. 
-		gameState.updateBalance();	
-		
-		//updates label at the top
-		lblGameOutcome.setText(gameState.getGameOutcome());
-		
-		//update the bankroll 
-		availableBalance.setText("New Balance: " + gameState.getBankroll());
-		currentBet.setText("");
-	}
-	
+	/**
+	 * Creates a panel that contains the Play again button.
+	 */
 	private JPanel newPanelEndOfGame() {
 		JPanel panelEndOfGame = new JPanel();
 		panelEndOfGame.setBounds(10, 155, 300, 38);
@@ -315,6 +274,36 @@ public class BlackjackGUI extends JFrame {
 		return panelEndOfGame;
 	}
 
+	/**
+	 * Wraps up the game by doing the following: 
+	 * 1.)Disables the buttons
+	 * 2.)Checks and displays the outcome of the game 
+	 * 3.)Updates the bankroll
+	 * 4.)Disables the button if the player doesnt have enough funds to play again.
+	 */
+	private void gameEnd() {
+		btnHit.setEnabled(false);
+		btnStay.setEnabled(false);
+		btnPlayAgain.setEnabled(true);
+		
+		//checks if its a win, tie or loss. 
+		gameState.updateBalance();	
+		
+		//updates label at the top
+		lblGameOutcome.setText(gameState.getGameOutcome());
+		
+		//update the bankroll 
+		availableBalance.setText("New Balance: " + gameState.getBankroll());
+		currentBet.setText("");
+		
+		if(gameState.getBankroll() <= GameState.MINIMUM_BET) {
+			btnPlayAgain.setEnabled(false);
+		}
+	}
+	
+	/**
+	 * Closes the application
+	 */
 	private JButton newbtnClose() {
 		JButton btnClose = new JButton("End");
 		btnClose.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -323,6 +312,19 @@ public class BlackjackGUI extends JFrame {
 		return btnClose;
 	}
 
+	/**
+	 * Creates a button which implements the same functionality as playing in blackjack:
+	 * OnClick:
+	 * 1.)Creates a new hand
+	 * 2.)Disables play again button
+	 * 3.)Enables Increase Bet , Decrease Bet, and Submit button
+	 * 4.)Clears the image paths for the cards
+	 * 5.)Clears the previous game outcome
+	 * 6.)Updates the display of the current balance
+	 * 7.)Updates the display of the current bet 
+	 * 8.)Resets the number of times that the dealer and player have hit to 0
+	 * @return
+	 */
 	private JButton newbtnPlayAgain() {
 		btnPlayAgain = new JButton("Next Hand");
 		btnPlayAgain.addActionListener(new ActionListener() {
@@ -338,7 +340,7 @@ public class BlackjackGUI extends JFrame {
 				btnDecreaseBet.setEnabled(true);
 				btnSubmit.setEnabled(true);
 				
-				//Set all card img paths to “ ”
+				//Set all card img paths to ï¿½ ï¿½
 				playerCard8.setIcon(new ImageIcon(BlackjackGUI.class.getResource("")));
 				playerCard7.setIcon(new ImageIcon(BlackjackGUI.class.getResource("")));
 				playerCard6.setIcon(new ImageIcon(BlackjackGUI.class.getResource("")));
@@ -374,6 +376,14 @@ public class BlackjackGUI extends JFrame {
 		return btnPlayAgain;
 	}
 
+	/**
+	 * Creates the panel in the bottom left that contains the following:
+	 * 1.)Display of the balance
+	 * 2.)Display of the current bet
+	 * 3.)Increase button
+	 * 4.)Decrease button
+	 * @return
+	 */
 	private JPanel newBettingPanel() {
 		JPanel BettingPanel = new JPanel();
 		BettingPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -398,6 +408,56 @@ public class BlackjackGUI extends JFrame {
 		return BettingPanel;
 	}
 
+	/**
+	 * Button that decreases the amount of the bet every time it is clicked.
+	 */
+	private JButton newbtnDecreaseBet() {
+		btnDecreaseBet = new JButton("\u25BC");
+		btnDecreaseBet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//Decreases the amount of the bet
+				gameState.modifyBet(-10);
+				if (gameState.getCurrentBet() <= 90) {
+					currentBet.setText("Current Bet:  "+gameState.getCurrentBet());
+					availableBalance.setText("Balance: " + gameState.getBankroll());
+				}
+				else {
+					currentBet.setText("Current Bet: "+gameState.getCurrentBet());
+					availableBalance.setText("Balance: " + gameState.getBankroll());
+				}
+			}
+		});
+		return btnDecreaseBet;
+	}
+	
+	/**
+	 * Button that increases the amount of the bet every time it is clicked.
+	 * @return
+	 */
+	private JButton newbtnIncreaseBet() {
+		btnIncreaseBet = new JButton("\u25B2");
+		btnIncreaseBet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//Increases the amount of the bet
+				gameState.modifyBet(10);
+				if (gameState.getCurrentBet() <= 90) {
+					currentBet.setText("Current Bet:  "+gameState.getCurrentBet());
+					availableBalance.setText("Balance: " + gameState.getBankroll());
+				}
+				else {
+					currentBet.setText("Current Bet: "+gameState.getCurrentBet());
+					availableBalance.setText("Balance: " + gameState.getBankroll());
+				}
+			}
+		});
+		return btnIncreaseBet;
+	}
+
+	/**
+	 * Displays the current available balance after the current bet amount is subtracted 
+	 * from the total game balance.
+	 * @return
+	 */
 	private JLabel newAvailableBalance() {
 		availableBalance = new JLabel("Balance: " + gameState.getBankroll());
 		availableBalance.setFont(new Font("Monospaced", Font.ITALIC, 15));
@@ -405,6 +465,10 @@ public class BlackjackGUI extends JFrame {
 		return availableBalance;
 	}
 	
+	/**
+	 * Displays the current bet.
+	 * @return
+	 */
 	private JLabel newCurrentBet() {
 		currentBet = new JLabel("Current Bet:  " + gameState.getCurrentBet());
 		currentBet.setHorizontalAlignment(SwingConstants.CENTER);
@@ -412,6 +476,11 @@ public class BlackjackGUI extends JFrame {
 		return currentBet;
 	}
 	
+	/**
+	 * Panel contained by the Betting panel that contains the 
+	 * text displayed by the avalableBalance panel.
+	 * @return
+	 */
 	private JPanel newBalancePanel() {
 		JPanel BalancePanel = new JPanel();
 		BalancePanel.setLayout(new BorderLayout(0, 0));
@@ -421,6 +490,11 @@ public class BlackjackGUI extends JFrame {
 		return BalancePanel;
 	}
 
+	/**
+	 * Panel contained by the Betting panel that contains the text
+	 * that is displayed by the CurrentBet.
+	 * @return
+	 */
 	private JPanel newBidPanel() {
 		JPanel BidPanel = new JPanel();
 		BidPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
@@ -432,6 +506,17 @@ public class BlackjackGUI extends JFrame {
 		return BidPanel;
 	}
 
+	/**
+	 * Button that has the same functionality of submitting your bet as blackjack.
+	 * Starts the game. 
+	 * OnClick:
+	 * 1.)Locks buttons in the bettingPanel
+	 * 2.)Updates the current bet to show the amount bet.
+	 * 3.)Calls the method deal
+	 * 4.)Creates the cards and adds their img path.
+	 * 5.)Evaluates if natural blackjack or not, proceeds accordingly.
+	 * @return
+	 */
 	private JButton newbtnSubmit() {
 		btnSubmit = new JButton("Submit");
 		
@@ -447,7 +532,7 @@ public class BlackjackGUI extends JFrame {
 				
 				//call deal method to get cards
 			    cards = gameState.deal();
-
+			
 				//Create the dealers cards
 				//need to create all of the cards to be able to have them stack correctly. 
 				JLabel dcard1 = newDealerCard1("");
@@ -516,10 +601,6 @@ public class BlackjackGUI extends JFrame {
 					//enable hit and stay btn
 					btnHit.setEnabled(true);
 					btnStay.setEnabled(true);
-					System.out.println("bankoll: " + gameState.getBankroll());
-					System.out.println("dealer score: " + gameState.getDealerScore());
-					System.out.println("player score: " + gameState.getPlayerScore());
-					
 				}
 			}
 		});
@@ -527,7 +608,16 @@ public class BlackjackGUI extends JFrame {
 		return btnSubmit;
 	}
 	
-	//Creates the Jpanel that is used instead of the DealersCards.java
+	/**
+	 * Creates a layered pane that all of the cards for the players are displayed on.
+	 * 
+	 * I originally created two separate JPanel classes, but I was running into issues.
+	 * I needed to add cards one at a time (assigning a new value to the image path), but I couldn't
+	 * figure out a way to send any variables to a Jframe. Tried making a setter, tried
+	 * sending it to the constructor, but nothing I tried I could get to work. Researching after I finished this approach
+	 * I found a thread talking about this, and someone said that you can send a string via a getter 
+	 * that has the functionality of a setter in the Jframe. I would love input on this. 
+	 */
 	private JPanel newPlayersCards() {
 		playersCards = new JPanel();
 		playersCards.setBackground(new Color(0, 100, 0));
@@ -539,7 +629,9 @@ public class BlackjackGUI extends JFrame {
 		return playersCards;
 	}
 	
-	//Creates the Jpanel that is used instead of the PLayersCards.java
+	/**
+	 * Creates a layered pane that all of the cards for the dealer are displayed on. 
+	 */
 	private JPanel newDealersCards() {
 		dealersCards = new JPanel();
 		dealersCards.setBackground(new Color(0, 100, 0));
@@ -552,7 +644,20 @@ public class BlackjackGUI extends JFrame {
 		return dealersCards;
 	}
 	
-	//NOT IMPORTANT
+	/**
+	 * Creates a single card that is added to the PlayersCards/DealersCards panel
+	 */
+	private void newPlayersCardsPane() {
+		playersCardsPane = new JLayeredPane();
+	}
+
+	/**
+	 * Creates a single card that is added to the PlayersCards/DealersCards panel
+	 */
+	private void newDealersCardsPane() {
+		dealersCardsPane = new JLayeredPane();
+	}
+	
 	private JLabel newPlayerCard8(String cardPath) {
 		playerCard8 = new JLabel("");
 		playerCard8.setIcon(new ImageIcon(BlackjackGUI.class.getResource(cardPath)));
@@ -663,44 +768,5 @@ public class BlackjackGUI extends JFrame {
 		dealerCard1.setIcon(new ImageIcon(BlackjackGUI.class.getResource(cardPath)));
 		dealerCard1.setBounds(210, 0, 125, 182);
 		return dealerCard1;
-	}
-	//DONE
-	private JButton newbtnDecreaseBet() {
-		btnDecreaseBet = new JButton("\u25BC");
-		btnDecreaseBet.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//Decreases the amount of the bet
-				gameState.modifyBet(-10);
-				if (gameState.getCurrentBet() <= 90) {
-					currentBet.setText("Current Bet:  "+gameState.getCurrentBet());
-					availableBalance.setText("Balance: " + gameState.getBankroll());
-				}
-				else {
-					currentBet.setText("Current Bet: "+gameState.getCurrentBet());
-					availableBalance.setText("Balance: " + gameState.getBankroll());
-				}
-			}
-		});
-		return btnDecreaseBet;
-	}
-	
-	//DONE
-	private JButton newbtnIncreaseBet() {
-		btnIncreaseBet = new JButton("\u25B2");
-		btnIncreaseBet.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//Increases the amount of the bet
-				gameState.modifyBet(10);
-				if (gameState.getCurrentBet() <= 90) {
-					currentBet.setText("Current Bet:  "+gameState.getCurrentBet());
-					availableBalance.setText("Balance: " + gameState.getBankroll());
-				}
-				else {
-					currentBet.setText("Current Bet: "+gameState.getCurrentBet());
-					availableBalance.setText("Balance: " + gameState.getBankroll());
-				}
-			}
-		});
-		return btnIncreaseBet;
 	}
 }

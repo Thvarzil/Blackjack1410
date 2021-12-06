@@ -18,7 +18,7 @@ public class GameState {
 	private double bankroll;
 	private int currentBet;
 	private String gameOutcome;
-	final int MINIMUM_BET = 10;
+	final static int MINIMUM_BET = 10;
 	private File file = new File("./src/save/save.txt");
 
 	/**
@@ -84,7 +84,7 @@ public class GameState {
         }
         else dealerScore+=(parseCardValue(dealerFirstCard.getCardValue()));
         
-        dealerScore+=(parseCardValue(dealerFirstCard.getCardValue()));
+        
         
         initialCards.add(playerHit());
         initialCards.add(playerHit());
@@ -117,7 +117,11 @@ public class GameState {
 	 */
 	public Card stay() {
 		Card newCard = new Card();
-		dealerScore+=(parseCardValue(newCard.getCardValue()));
+		if(dealerScore>10&&parseCardValue(newCard.getCardValue())==11) {
+        	dealerScore++;
+        }
+        else dealerScore+=(parseCardValue(newCard.getCardValue()));
+        
 		return newCard;
 	}
 
@@ -150,21 +154,21 @@ public class GameState {
 	
 	public void updateBalance() {
 		
-		//removed the current bet from the bankroll earlier so we need to resore its value
-		bankroll += currentBet;
+	
+		
 		
 		if(playerScore > dealerScore && playerScore <= 21) {
-			bankroll += currentBet;
+			saveBankroll(currentBet*1.5);
 			gameOutcome = "Player Wins";
 		}else if(playerScore < dealerScore && dealerScore <= 21) {
-			bankroll -= currentBet;
+			
 			gameOutcome = "Dealer Wins";
 		}else if(playerScore > 21) {
 			gameOutcome = "Bust! Dealer Wins";
-			bankroll -= currentBet;
+			
 		}else if(dealerScore > 21) {
 			gameOutcome = "Bust! Player Wins";
-			bankroll += currentBet;
+			saveBankroll(currentBet*1.5);
 		}else
 			gameOutcome = "It's a Tie";
 	}
